@@ -107,6 +107,7 @@ node dist/cli.js transcribe <input> --output-dir <dir> --json
 - Use a dedicated output directory per task.
 - Report the generated artifact paths back to the user.
 - If the input is a Xiaoyuzhou episode, the CLI resolves and downloads the source audio automatically.
+- After transcription, if the user appears to want a polished transcript, ask whether they also want cleanup. If yes, switch to the `clean-transcript` skill.
 
 ## Failure Modes
 

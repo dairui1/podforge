@@ -84,21 +84,33 @@ node dist/cli.js transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079
 
 ## Agent Skill
 
-这个仓库也提供了一个面向 `transcribe` 工作流的 agent skill。
+这个仓库也提供了转录和转录后清洗两个 agent skill。
 
-安装到当前项目：
+安装转录 skill：
 
 ```bash
 npx skills add dairui1/podcast-helper --skill transcribe
+```
+
+安装 transcript 清洗 skill：
+
+```bash
+npx skills add dairui1/podcast-helper --skill clean-transcript
 ```
 
 全局安装：
 
 ```bash
 npx skills add dairui1/podcast-helper --skill transcribe -g
+npx skills add dairui1/podcast-helper --skill clean-transcript -g
 ```
 
-skill 文件在 [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md)，它会引导 agent 优先使用：
+skill 文件在：
+
+- [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md)
+- [skills/clean-transcript/SKILL.md](./skills/clean-transcript/SKILL.md)
+
+`transcribe` skill 会引导 agent 优先使用：
 
 ```bash
 podcast-helper transcribe <input> --output-dir <dir> --json
@@ -109,6 +121,14 @@ podcast-helper transcribe <input> --output-dir <dir> --json
 ```bash
 https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3
 ```
+
+`clean-transcript` skill 设计成在转录之后继续使用，它会通过 Jina Reader：
+
+```bash
+https://r.jina.ai/<播客url>
+```
+
+抓取节目页面内容作为外部上下文，帮助修正常见的同音错别字、专有名词识别错误，以及冗余语气词。
 
 ## 开发
 

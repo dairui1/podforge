@@ -84,21 +84,33 @@ Example output:
 
 ## Agent Skill
 
-This repository also ships an agent skill for the `transcribe` workflow.
+This repository also ships agent skills for transcription and post-processing.
 
-Install the skill into the current project:
+Install the transcription skill into the current project:
 
 ```bash
 npx skills add dairui1/podcast-helper --skill transcribe
+```
+
+Install the transcript-cleaning skill:
+
+```bash
+npx skills add dairui1/podcast-helper --skill clean-transcript
 ```
 
 Install globally:
 
 ```bash
 npx skills add dairui1/podcast-helper --skill transcribe -g
+npx skills add dairui1/podcast-helper --skill clean-transcript -g
 ```
 
-The skill lives at [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md) and teaches agents to prefer:
+The skills live at:
+
+- [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md)
+- [skills/clean-transcript/SKILL.md](./skills/clean-transcript/SKILL.md)
+
+The `transcribe` skill teaches agents to prefer:
 
 ```bash
 podcast-helper transcribe <input> --output-dir <dir> --json
@@ -109,6 +121,14 @@ For low-cost live verification, the skill recommends:
 ```bash
 https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3
 ```
+
+The `clean-transcript` skill is designed to run after transcription and uses Jina Reader:
+
+```bash
+https://r.jina.ai/<podcast-url>
+```
+
+It uses the episode page as external context to repair ASR mistakes, especially names, homophones, and noisy filler words.
 
 ## Development
 
