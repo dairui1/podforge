@@ -4,6 +4,7 @@ export interface SttProvider {
   name: string;
   transcribe(input: {
     audioPath: string;
+    workDir?: string;
     onEvent?: (event: WorkflowEvent) => void;
   }): Promise<TranscriptResult>;
 }

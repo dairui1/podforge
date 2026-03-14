@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -52,13 +52,17 @@ export function createMlxWhisperProvider(
     name: "mlx-whisper",
     async transcribe({
       audioPath,
+      workDir,
       onEvent,
     }: {
       audioPath: string;
+      workDir?: string;
       onEvent?: (event: WorkflowEvent) => void;
     }): Promise<TranscriptResult> {
-      const workDir = await mkdtemp(resolve(tmpdir(), "podcast-helper-mlx-"));
-      const outputJsonPath = resolve(workDir, "transcript.json");
+      const ownedWorkDir = !workDir;
+      const effectiveWorkDir = workDir ?? (await mkdtemp(resolve(tmpdir(), "podcast-helper-mlx-")));
+      await mkdir(effectiveWorkDir, { recursive: true });
+      const outputJsonPath = resolve(effectiveWorkDir, "transcript.json");
 
       onEvent?.({
         type: "transcribe.started",
@@ -136,7 +140,9 @@ export function createMlxWhisperProvider(
       } catch (error) {
         throw wrapMlxWhisperError(error);
       } finally {
-        await rm(workDir, { recursive: true, force: true });
+        if (ownedWorkDir) {
+          await rm(effectiveWorkDir, { recursive: true, force: true });
+        }
       }
     },
   };

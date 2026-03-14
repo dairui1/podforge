@@ -30,16 +30,19 @@ The main `transcribe` command accepts exactly one input:
 Examples:
 
 ```bash
-podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
-podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
-podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
+npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
+npx podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 ```
 
 ## Requirements
 
-- `ELEVENLABS_API_KEY` must be set
 - The CLI can be invoked from npm with `npx` or `pnpm dlx`, or run from the repository
 - Cleanup with Jina Reader is optional and does not require ElevenLabs
+
+For ElevenLabs runs:
+
+- `ELEVENLABS_API_KEY` must be set
 
 For Apple Silicon local transcription with `mlx-whisper`:
 
@@ -65,6 +68,13 @@ For Apple Silicon local transcription:
 ```bash
 npx podcast-helper transcribe <input> --engine mlx-whisper --output-dir <dir> --json
 ```
+
+The local workflow defaults to:
+
+- a request-scoped temp workspace
+- FFmpeg chunking at `300` seconds
+- chunk-by-chunk partial transcript events on `stderr`
+- automatic cleanup unless `--keep-temp` is set
 
 Why:
 

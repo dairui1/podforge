@@ -10,7 +10,7 @@
 - 接受直接音频 URL
 - 接受本地音频文件
 - 下载原始音频
-- 使用 ElevenLabs 进行转录
+- 使用 ElevenLabs 或本地 `mlx-whisper` 进行转录
 - 产出 `音频 + SRT + TXT`
 
 ## 当前状态
@@ -20,7 +20,7 @@
 当前支持：
 
 - 来源：小宇宙单集链接、直接音频 URL、本地音频文件
-- 转录后端：ElevenLabs Speech to Text
+- 转录后端：ElevenLabs Speech to Text、Apple Silicon 上的本地 `mlx-whisper`
 - 输出：原始音频、`.srt`、`.txt`
 - 工具链：`pnpm + biome + vitest + tsup`
 
@@ -34,7 +34,8 @@
 ## 环境要求
 
 - Node.js 20+
-- 可用的 `ELEVENLABS_API_KEY`
+- 如果使用 ElevenLabs，需要可用的 `ELEVENLABS_API_KEY`
+- 如果使用本地 Apple Silicon 转录，需要 `ffmpeg` 和 `python3 -m pip install mlx-whisper`
 
 ## 用户快速开始
 
@@ -65,6 +66,12 @@ Apple Silicon 本地转录，使用 `mlx-whisper`：
 brew install ffmpeg
 python3 -m pip install mlx-whisper
 npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
+```
+
+本地分块转录，并输出流式进度：
+
+```bash
+npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --chunk-duration 300 --progress jsonl --output-dir ./out/mlx --json
 ```
 
 如果希望长期可用，也可以全局安装：
@@ -131,6 +138,12 @@ python3 -m pip install mlx-whisper
 podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
 ```
 
+如果要保留独立的临时工作目录用于调试：
+
+```bash
+podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp --output-dir ./out/local-mlx --json
+```
+
 示例输出：
 
 ```json
@@ -177,6 +190,13 @@ skill 文件在：
 npx podcast-helper transcribe <input> --output-dir <dir> --json
 pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
 ```
+
+对于本地 Apple Silicon 转录，这条工作流现在默认包含：
+
+- 每次请求一个独立的临时目录
+- `mlx-whisper` 默认按 `300` 秒分块
+- `stderr` 持续输出 chunk 级别进度和 partial transcript
+- 完成后自动清理，除非显式传 `--keep-temp`
 
 如果只是做低成本真实验证，skill 里推荐优先使用：
 

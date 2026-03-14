@@ -1,11 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { transcribeInput } from "../src/transcribe/workflow";
 import type { SourceAdapter } from "../src/sources/base";
 import type { SttProvider } from "../src/transcribe/provider";
+import type { AudioChunk } from "../src/audio/ffmpeg";
+import type { WorkflowEvent } from "../src/transcribe/types";
 
 describe("transcribe workflow", () => {
   let tempDir: string;
@@ -111,5 +113,132 @@ describe("transcribe workflow", () => {
     expect(result.source).toBe("remote-audio-url");
     expect(result.artifacts.audio).toContain("nicole.mp3");
     expect(await readFile(result.artifacts.txt, "utf8")).toBe("Remote audio transcript.\n");
+  });
+
+  test("creates a session temp dir, transcribes chunked audio, streams partial events, and cleans up temp files", async () => {
+    const sourceAudioPath = join(tempDir, "episode.mp3");
+    const chunkOnePath = join(tempDir, "chunk-000.mp3");
+    const chunkTwoPath = join(tempDir, "chunk-001.mp3");
+
+    await writeFile(sourceAudioPath, Buffer.from("source-audio"));
+    await writeFile(chunkOnePath, Buffer.from("chunk-one"));
+    await writeFile(chunkTwoPath, Buffer.from("chunk-two"));
+
+    const chunker = vi.fn(async (): Promise<AudioChunk[]> => {
+      return [
+        {
+          index: 0,
+          audioPath: chunkOnePath,
+          offsetMs: 0,
+        },
+        {
+          index: 1,
+          audioPath: chunkTwoPath,
+          offsetMs: 300_000,
+        },
+      ];
+    });
+
+    const provider: SttProvider = {
+      name: "mlx-whisper",
+      async transcribe({
+        audioPath,
+        onEvent,
+        workDir,
+      }: {
+        audioPath: string;
+        onEvent?: (event: WorkflowEvent) => void;
+        workDir?: string;
+      }) {
+        expect(workDir).toBeTruthy();
+        onEvent?.({
+          type: "transcribe.started",
+          message: "Provider started chunk.",
+          data: { audioPath },
+        });
+
+        if (audioPath === chunkOnePath) {
+          return {
+            text: "First chunk text.\n",
+            segments: [{ startMs: 0, endMs: 1_500, text: "First chunk text." }],
+            language: "en",
+          };
+        }
+
+        return {
+          text: "Second chunk text.\n",
+          segments: [{ startMs: 500, endMs: 2_000, text: "Second chunk text." }],
+          language: "en",
+        };
+      },
+    };
+
+    const events: WorkflowEvent[] = [];
+    const result = await transcribeInput({
+      input: sourceAudioPath,
+      outputDir: tempDir,
+      sourceAdapters: [],
+      provider,
+      chunkDurationSec: 300,
+      tempRootDir: tempDir,
+      audioChunker: chunker,
+      onEvent(event) {
+        events.push(event);
+      },
+    });
+
+    expect(chunker).toHaveBeenCalledTimes(1);
+    expect(await readFile(result.artifacts.audio, "utf8")).toBe("source-audio");
+    expect(await readFile(result.artifacts.txt, "utf8")).toBe("First chunk text.\nSecond chunk text.\n");
+    expect(await readFile(result.artifacts.srt, "utf8")).toContain("00:05:00,500 --> 00:05:02,000");
+
+    const sessionStarted = events.find((event) => event.type === "session.started");
+    const sessionDir = typeof sessionStarted?.data?.sessionDir === "string" ? sessionStarted.data.sessionDir : "";
+    expect(sessionDir).toContain("podcast-helper-session-");
+    await expect(access(sessionDir)).rejects.toThrow();
+
+    const partialEvents = events.filter((event) => event.type === "transcript.partial");
+    expect(partialEvents).toHaveLength(2);
+    expect(partialEvents[0]?.data?.text).toBe("First chunk text.");
+    expect(partialEvents[1]?.data?.chunkIndex).toBe(1);
+    expect(events.some((event) => event.type === "cleanup.completed")).toBe(true);
+  });
+
+  test("keeps the session temp dir when keepTemp is enabled", async () => {
+    const sourceAudioPath = join(tempDir, "episode.mp3");
+    await writeFile(sourceAudioPath, Buffer.from("source-audio"));
+
+    const provider: SttProvider = {
+      name: "mlx-whisper",
+      async transcribe() {
+        return {
+          text: "Only chunk.\n",
+          segments: [{ startMs: 0, endMs: 1_000, text: "Only chunk." }],
+          language: "en",
+        };
+      },
+    };
+
+    const events: WorkflowEvent[] = [];
+    await transcribeInput({
+      input: sourceAudioPath,
+      outputDir: tempDir,
+      sourceAdapters: [],
+      provider,
+      chunkDurationSec: 0,
+      keepTemp: true,
+      tempRootDir: tempDir,
+      onEvent(event) {
+        events.push(event);
+      },
+    });
+
+    const sessionStarted = events.find((event) => event.type === "session.started");
+    const sessionDir = typeof sessionStarted?.data?.sessionDir === "string" ? sessionStarted.data.sessionDir : "";
+
+    await expect(access(sessionDir)).resolves.toBeUndefined();
+    expect(events.some((event) => event.type === "cleanup.skipped")).toBe(true);
+
+    await rm(sessionDir, { recursive: true, force: true });
   });
 });

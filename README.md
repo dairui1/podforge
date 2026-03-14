@@ -10,7 +10,7 @@ The project currently focuses on one concrete workflow:
 - Accept a direct remote audio URL
 - Accept a local audio file
 - Download the original audio
-- Transcribe with ElevenLabs
+- Transcribe with ElevenLabs or local `mlx-whisper`
 - Generate `audio + SRT + TXT` artifacts
 
 ## Status
@@ -20,7 +20,7 @@ This project is early but functional.
 Current scope:
 
 - Source: Xiaoyuzhou episode URLs, direct audio URLs, local audio files
-- Transcription backend: ElevenLabs Speech to Text
+- Transcription backends: ElevenLabs Speech to Text, local `mlx-whisper` on Apple Silicon
 - Outputs: original audio, `.srt`, `.txt`
 - Toolchain: `pnpm + biome + vitest + tsup`
 
@@ -34,7 +34,8 @@ Planned next:
 ## Requirements
 
 - Node.js 20+
-- An `ELEVENLABS_API_KEY`
+- An `ELEVENLABS_API_KEY` for the ElevenLabs engine
+- `ffmpeg` and `python3 -m pip install mlx-whisper` for local Apple Silicon transcription
 
 ## User Quick Start
 
@@ -65,6 +66,12 @@ Apple Silicon local transcription with `mlx-whisper`:
 brew install ffmpeg
 python3 -m pip install mlx-whisper
 npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
+```
+
+Chunked local transcription with streaming progress:
+
+```bash
+npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --chunk-duration 300 --progress jsonl --output-dir ./out/mlx --json
 ```
 
 If you prefer a persistent install:
@@ -131,6 +138,12 @@ python3 -m pip install mlx-whisper
 podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
 ```
 
+Keep the isolated temp workspace for debugging:
+
+```bash
+podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp --output-dir ./out/local-mlx --json
+```
+
 Example output:
 
 ```json
@@ -177,6 +190,13 @@ The skill teaches agents to prefer no-install entry points first:
 npx podcast-helper transcribe <input> --output-dir <dir> --json
 pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
 ```
+
+For local Apple Silicon runs, the workflow now uses:
+
+- a per-request temp workspace
+- FFmpeg chunking with a default chunk size of `300` seconds for `mlx-whisper`
+- chunk-by-chunk progress and partial transcript events on `stderr`
+- automatic cleanup unless `--keep-temp` is set
 
 For low-cost live verification, the skill recommends:
 

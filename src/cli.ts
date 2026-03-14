@@ -30,8 +30,19 @@ program
     "Python interpreter for local mlx-whisper runs",
     process.env.PODCAST_HELPER_PYTHON || "python3"
   )
+  .option(
+    "--chunk-duration <seconds>",
+    "Chunk duration in seconds. Defaults to 300 for mlx-whisper and 0 for elevenlabs."
+  )
+  .option("--keep-temp", "Keep the per-request temp workspace for debugging", false)
+  .option(
+    "--progress <mode>",
+    "Progress output mode: plain, jsonl, or none",
+    "plain"
+  )
   .option("--json", "Print a machine-readable manifest to stdout", false)
   .action(async (input, options) => {
+    const progressMode = parseProgressMode(options.progress);
     const result = await transcribeInput({
       input,
       outputDir: options.outputDir,
@@ -42,8 +53,10 @@ program
         languageCode: options.language,
         pythonExecutable: options.pythonExecutable,
       }),
+      chunkDurationSec: parseChunkDuration(options.chunkDuration),
+      keepTemp: Boolean(options.keepTemp),
       onEvent(event: WorkflowEvent) {
-        process.stderr.write(`${event.message}\n`);
+        renderWorkflowEvent(event, progressMode);
       },
     });
 
@@ -62,3 +75,50 @@ program.parseAsync(process.argv).catch((error: unknown) => {
   process.stderr.write(`${message}\n`);
   process.exitCode = 1;
 });
+
+function parseChunkDuration(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(`Invalid chunk duration: ${value}`);
+  }
+
+  return parsed;
+}
+
+function parseProgressMode(value: string): "plain" | "jsonl" | "none" {
+  switch (value) {
+    case "plain":
+    case "jsonl":
+    case "none":
+      return value;
+    default:
+      throw new Error(`Invalid progress mode: ${value}. Expected plain, jsonl, or none.`);
+  }
+}
+
+function renderWorkflowEvent(
+  event: WorkflowEvent,
+  mode: "plain" | "jsonl" | "none"
+): void {
+  if (mode === "none") {
+    return;
+  }
+
+  if (mode === "jsonl") {
+    process.stderr.write(`${JSON.stringify(event)}\n`);
+    return;
+  }
+
+  if (event.type === "transcript.partial" && typeof event.data?.text === "string") {
+    const chunkIndex = typeof event.data.chunkIndex === "number" ? event.data.chunkIndex + 1 : "?";
+    const chunkCount = typeof event.data.chunkCount === "number" ? event.data.chunkCount : "?";
+    process.stderr.write(`Partial transcript ${chunkIndex}/${chunkCount}: ${event.data.text}\n`);
+    return;
+  }
+
+  process.stderr.write(`${event.message}\n`);
+}
