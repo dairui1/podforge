@@ -82,6 +82,34 @@ node dist/cli.js transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079
 }
 ```
 
+## Agent Skill
+
+这个仓库也提供了一个面向 `transcribe` 工作流的 agent skill。
+
+安装到当前项目：
+
+```bash
+npx skills add dairui1/podcast-helper --skill transcribe
+```
+
+全局安装：
+
+```bash
+npx skills add dairui1/podcast-helper --skill transcribe -g
+```
+
+skill 文件在 [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md)，它会引导 agent 优先使用：
+
+```bash
+podcast-helper transcribe <input> --output-dir <dir> --json
+```
+
+如果只是做低成本真实验证，skill 里推荐优先使用：
+
+```bash
+https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3
+```
+
 ## 开发
 
 运行项目检查：

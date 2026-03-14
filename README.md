@@ -82,6 +82,34 @@ Example output:
 }
 ```
 
+## Agent Skill
+
+This repository also ships an agent skill for the `transcribe` workflow.
+
+Install the skill into the current project:
+
+```bash
+npx skills add dairui1/podcast-helper --skill transcribe
+```
+
+Install globally:
+
+```bash
+npx skills add dairui1/podcast-helper --skill transcribe -g
+```
+
+The skill lives at [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md) and teaches agents to prefer:
+
+```bash
+podcast-helper transcribe <input> --output-dir <dir> --json
+```
+
+For low-cost live verification, the skill recommends:
+
+```bash
+https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3
+```
+
 ## Development
 
 Run the project checks:
