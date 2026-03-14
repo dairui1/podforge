@@ -1,0 +1,45 @@
+{
+  "name": "podcast-helper",
+  "version": "0.1.0",
+  "description": "Podcast CLI utilities for downloading and transcribing podcast episodes.",
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "bin": {
+    "podcast-helper": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
+    "audit": "pnpm audit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:live": "vitest run test/live.transcribe.test.ts",
+    "prepublishOnly": "pnpm run check && pnpm run build"
+  },
+  "dependencies": {
+    "@ai-sdk/elevenlabs": "2.0.24",
+    "ai": "6.0.116",
+    "commander": "14.0.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.7",
+    "@types/node": "25.5.0",
+    "tsup": "8.5.1",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.0"
+  }
+}
