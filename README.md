@@ -7,6 +7,8 @@
 The project currently focuses on one concrete workflow:
 
 - Resolve a Xiaoyuzhou episode URL
+- Accept a direct remote audio URL
+- Accept a local audio file
 - Download the original audio
 - Transcribe with ElevenLabs
 - Generate `audio + SRT + TXT` artifacts
@@ -17,7 +19,7 @@ This project is early but functional.
 
 Current scope:
 
-- Source: Xiaoyuzhou episode URLs
+- Source: Xiaoyuzhou episode URLs, direct audio URLs, local audio files
 - Transcription backend: ElevenLabs Speech to Text
 - Outputs: original audio, `.srt`, `.txt`
 - Toolchain: `pnpm + biome + vitest + tsup`
@@ -32,10 +34,44 @@ Planned next:
 ## Requirements
 
 - Node.js 20+
-- pnpm 10+
 - An `ELEVENLABS_API_KEY`
 
-## Quick Start
+## User Quick Start
+
+Run without installing globally:
+
+```bash
+npx podcast-helper --help
+pnpm dlx podcast-helper --help
+```
+
+Transcribe a podcast episode or audio file:
+
+```bash
+export ELEVENLABS_API_KEY=your_key
+npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+```
+
+Low-cost smoke test:
+
+```bash
+export ELEVENLABS_API_KEY=your_key
+pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
+```
+
+If you prefer a persistent install:
+
+```bash
+npm install -g podcast-helper
+podcast-helper --help
+```
+
+## Development Requirements
+
+- Node.js 20+
+- pnpm 10+
+
+## Development Quick Start
 
 Install dependencies:
 
@@ -63,7 +99,21 @@ Transcribe a Xiaoyuzhou episode:
 
 ```bash
 export ELEVENLABS_API_KEY=your_key
-node dist/cli.js transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+```
+
+Transcribe a direct audio URL:
+
+```bash
+export ELEVENLABS_API_KEY=your_key
+pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
+```
+
+Transcribe a local audio file:
+
+```bash
+export ELEVENLABS_API_KEY=your_key
+podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 ```
 
 Example output:
@@ -106,10 +156,11 @@ The skill lives at:
 
 - [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md)
 
-The skill teaches agents to prefer:
+The skill teaches agents to prefer no-install entry points first:
 
 ```bash
-podcast-helper transcribe <input> --output-dir <dir> --json
+npx podcast-helper transcribe <input> --output-dir <dir> --json
+pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
 ```
 
 For low-cost live verification, the skill recommends:

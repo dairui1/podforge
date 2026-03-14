@@ -1,7 +1,7 @@
 ---
 name: transcribe
-description: Use podcast-helper to transcribe podcast audio into original audio, SRT subtitles, and TXT transcripts, then optionally clean the transcript with episode-page context. Use when the user asks to transcribe a podcast episode, generate subtitles, extract a transcript from an audio file, or polish a raw transcript using the podcast page.
-allowed-tools: Bash(curl:*), Bash(podcast-helper:*), Bash(npx podcast-helper:*), Bash(node dist/cli.js:*), Bash(pnpm run build:*)
+description: Use podcast-helper to transcribe podcast audio into original audio, SRT subtitles, and TXT transcripts, then optionally clean the transcript with episode-page context. Use when the user asks to transcribe a podcast episode, generate subtitles, extract a transcript from an audio file, or polish a raw transcript using the podcast page. Prefer no-install invocation through npx or pnpm dlx when appropriate.
+allowed-tools: Bash(curl:*), Bash(podcast-helper:*), Bash(npx podcast-helper:*), Bash(pnpm dlx podcast-helper:*), Bash(node dist/cli.js:*), Bash(pnpm run build:*)
 ---
 
 # Transcribe and Clean with podcast-helper
@@ -37,7 +37,7 @@ podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 ## Requirements
 
 - `ELEVENLABS_API_KEY` must be set
-- The CLI must be installed or available from the repository
+- The CLI can be invoked from npm with `npx` or `pnpm dlx`, or run from the repository
 - Cleanup with Jina Reader is optional and does not require ElevenLabs
 
 Check the API key first if transcription is expected to run:
@@ -51,7 +51,7 @@ printenv ELEVENLABS_API_KEY
 Prefer machine-readable output:
 
 ```bash
-podcast-helper transcribe <input> --output-dir <dir> --json
+npx podcast-helper transcribe <input> --output-dir <dir> --json
 ```
 
 Why:
@@ -107,9 +107,12 @@ When cleanup is requested, keep the raw transcript unchanged and write a sibling
 
 Use this order of preference:
 
-1. `podcast-helper transcribe ...`
-2. `npx podcast-helper transcribe ...`
-3. In this repository: `node dist/cli.js transcribe ...`
+1. `npx podcast-helper transcribe ...`
+2. `pnpm dlx podcast-helper transcribe ...`
+3. `podcast-helper transcribe ...`
+4. In this repository: `node dist/cli.js transcribe ...`
+
+Do not default to repository build instructions unless you are already working inside this repository.
 
 If you are inside the repository and `dist/cli.js` is missing, build first:
 
@@ -129,6 +132,7 @@ node dist/cli.js transcribe <input> --output-dir <dir> --json
 - Use `https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3` for a cheap live verification unless the user explicitly wants a real podcast episode.
 - Use a dedicated output directory per task.
 - Report the generated artifact paths back to the user.
+- Prefer `npx` or `pnpm dlx` when the user does not already have the CLI installed.
 - If the input is a Xiaoyuzhou episode, the CLI resolves and downloads the source audio automatically.
 - After transcription, if the user appears to want a polished transcript, ask whether they also want cleanup.
 

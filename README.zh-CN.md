@@ -7,6 +7,8 @@
 当前项目先聚焦一个明确可用的场景：
 
 - 解析小宇宙单集链接
+- 接受直接音频 URL
+- 接受本地音频文件
 - 下载原始音频
 - 使用 ElevenLabs 进行转录
 - 产出 `音频 + SRT + TXT`
@@ -17,7 +19,7 @@
 
 当前支持：
 
-- 来源：小宇宙单集链接
+- 来源：小宇宙单集链接、直接音频 URL、本地音频文件
 - 转录后端：ElevenLabs Speech to Text
 - 输出：原始音频、`.srt`、`.txt`
 - 工具链：`pnpm + biome + vitest + tsup`
@@ -32,10 +34,44 @@
 ## 环境要求
 
 - Node.js 20+
-- pnpm 10+
 - 可用的 `ELEVENLABS_API_KEY`
 
-## 快速开始
+## 用户快速开始
+
+不做全局安装，直接运行：
+
+```bash
+npx podcast-helper --help
+pnpm dlx podcast-helper --help
+```
+
+转录播客单集或音频文件：
+
+```bash
+export ELEVENLABS_API_KEY=你的_key
+npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+```
+
+低成本 smoke test：
+
+```bash
+export ELEVENLABS_API_KEY=你的_key
+pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
+```
+
+如果希望长期可用，也可以全局安装：
+
+```bash
+npm install -g podcast-helper
+podcast-helper --help
+```
+
+## 开发环境要求
+
+- Node.js 20+
+- pnpm 10+
+
+## 开发快速开始
 
 安装依赖：
 
@@ -63,7 +99,21 @@ node dist/cli.js --help
 
 ```bash
 export ELEVENLABS_API_KEY=你的_key
-node dist/cli.js transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+```
+
+转录一个直接音频 URL：
+
+```bash
+export ELEVENLABS_API_KEY=你的_key
+pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
+```
+
+转录一个本地音频文件：
+
+```bash
+export ELEVENLABS_API_KEY=你的_key
+podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 ```
 
 示例输出：
@@ -106,10 +156,11 @@ skill 文件在：
 
 - [skills/transcribe/SKILL.md](./skills/transcribe/SKILL.md)
 
-这个 skill 会引导 agent 优先使用：
+这个 skill 会引导 agent 优先使用免安装入口：
 
 ```bash
-podcast-helper transcribe <input> --output-dir <dir> --json
+npx podcast-helper transcribe <input> --output-dir <dir> --json
+pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
 ```
 
 如果只是做低成本真实验证，skill 里推荐优先使用：
