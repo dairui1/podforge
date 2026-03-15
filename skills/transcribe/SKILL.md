@@ -3,7 +3,7 @@ name: transcribe
 description: "Use podcast-helper to transcribe podcast audio into original audio, SRT subtitles, and TXT transcripts, then optionally clean the transcript with episode-page context. Use when the user asks to transcribe a podcast episode, generate subtitles, extract a transcript from an audio file, or polish a raw transcript using the podcast page. Prefer no-install invocation through npx or pnpm dlx when appropriate."
 allowed-tools: Bash(curl:*), Bash(podcast-helper:*), Bash(npx podcast-helper:*), Bash(pnpm dlx podcast-helper:*), Bash(node dist/cli.js:*), Bash(pnpm run build:*)
 metadata:
-  version: "1.1"
+  version: "1.2"
   tags: [podcast, transcription, audio, subtitles, asr, cleanup]
 ---
 
@@ -47,6 +47,156 @@ Activate this skill when the user:
 - Asks about podcast-helper CLI usage
 - Needs local or offline transcription on Apple Silicon
 
+## OpenClaw Setup (Recommended)
+
+OpenClaw is the primary platform for this skill. It uses workspace-based prompt injection with automatic skill loading.
+
+### Installation
+
+**Via ClawdHub (recommended):**
+
+```bash
+clawdhub install dairui1/podcast-helper --skill transcribe
+```
+
+**Manual:**
+
+```bash
+mkdir -p ~/.openclaw/skills/transcribe
+cp skills/transcribe/SKILL.md ~/.openclaw/skills/transcribe/SKILL.md
+```
+
+### Workspace Structure
+
+OpenClaw injects these files into every session:
+
+```
+~/.openclaw/
+├── workspace/
+│   ├── AGENTS.md          # multi-agent workflows, delegation patterns
+│   ├── SOUL.md            # behavioral guidelines, principles
+│   ├── TOOLS.md           # tool capabilities, integration gotchas
+│   └── MEMORY.md          # long-term memory (main session only)
+└── skills/
+    └── transcribe/
+        └── SKILL.md       # ← this file
+```
+
+Transcription output goes to the project tree:
+
+```
+project/
+├── out/                   # transcription output (gitignored)
+│   └── episode-name/
+│       ├── episode.mp3
+│       ├── episode.srt
+│       ├── episode.txt
+│       └── episode.cleaned.txt
+└── ...
+```
+
+### Promotion Targets
+
+When transcription conventions prove broadly applicable, promote them to workspace files:
+
+| Convention | Promote To | Example |
+|------------|------------|---------|
+| Default output dir pattern | `AGENTS.md` | "Always use `./out/<episode-slug>/` for transcription output" |
+| Preferred engine for project | `CLAUDE.md` | "Use `--engine groq` for this project" |
+| Cleanup style rules | `SOUL.md` | "Preserve filler words for interview-style podcasts" |
+| Tool gotchas | `TOOLS.md` | "yt-dlp needs periodic updates for YouTube" |
+
+### Inter-Session Communication
+
+OpenClaw provides tools to share transcription results across sessions:
+
+- **sessions_list** — view active/recent sessions
+- **sessions_send** — send transcript artifacts to another session
+- **sessions_spawn** — spawn a sub-agent for batch transcription
+
+## Claude Code Setup
+
+Claude Code auto-loads `SKILL.md` from the skills directory and grants the declared `allowed-tools`.
+
+### Installation
+
+**Via skills CLI (recommended):**
+
+```bash
+npx skills add dairui1/podcast-helper --skill transcribe
+```
+
+**Global install (available across all projects):**
+
+```bash
+npx skills add dairui1/podcast-helper --skill transcribe -g
+```
+
+**Manual:**
+
+```bash
+# project-local
+mkdir -p skills/transcribe
+curl -sL https://raw.githubusercontent.com/dairui1/podcast-helper/main/skills/transcribe/SKILL.md \
+  -o skills/transcribe/SKILL.md
+
+# or global
+mkdir -p ~/.claude/skills/transcribe
+curl -sL https://raw.githubusercontent.com/dairui1/podcast-helper/main/skills/transcribe/SKILL.md \
+  -o ~/.claude/skills/transcribe/SKILL.md
+```
+
+### Optional: Hook Integration
+
+Add hooks to `.claude/settings.json` for automatic post-transcription reminders:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'podcast-helper transcribe'; then echo 'Transcription complete — ask the user if they want cleanup.'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This injects a cleanup reminder after each transcription run (~20 tokens overhead). The hook is **opt-in** and not required.
+
+## Generic Setup (Other Agents)
+
+For Codex, Copilot, or other agents that do not auto-load `SKILL.md`, add a reference to your agent config file.
+
+### CLAUDE.md / AGENTS.md
+
+```markdown
+## Podcast Transcription
+
+Use podcast-helper for transcription tasks:
+1. `npx podcast-helper transcribe <input> --output-dir <dir> --json`
+2. Check `skills/transcribe/SKILL.md` for full workflow details
+3. After transcription, ask user if cleanup is needed
+```
+
+### .github/copilot-instructions.md
+
+```markdown
+## Podcast Transcription Skill
+
+This project uses podcast-helper for audio transcription.
+- CLI: `npx podcast-helper transcribe <url-or-file> --output-dir ./out --json`
+- Supported sources: Xiaoyuzhou, Apple Podcasts, YouTube, Pocket Casts, Castro, Ximalaya, Podcast Addict, any RSS-backed page, direct audio URLs, local files
+- Spotify is DRM-protected and unsupported
+- See skills/transcribe/SKILL.md for full agent guidance
+```
+
 ## Inputs
 
 The main `transcribe` command accepts exactly one input:
@@ -65,6 +215,8 @@ Examples:
 
 ```bash
 npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podcast-helper transcribe https://podcasts.apple.com/us/podcast/example/id123456?i=789 --output-dir ./out/apple --json
+npx podcast-helper transcribe https://www.youtube.com/watch?v=dQw4w9WgXcQ --output-dir ./out/yt --json
 npx podcast-helper transcribe https://example.fm/episodes/42 --output-dir ./out/episode-page --json
 npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
 npx podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
@@ -104,6 +256,14 @@ The CLI selects engines in this order (first available wins):
 
 Use `--engine <provider>` only when you need to force a specific backend.
 
+### Source Adapter Dependencies
+
+| Adapter | External Dependency | Install |
+|---------|-------------------|---------|
+| YouTube | `yt-dlp` | `brew install yt-dlp` or `pip install yt-dlp` |
+| Local transcription | `ffmpeg`, `python3` | `brew install ffmpeg` |
+| All others | — | No extra dependencies |
+
 ### Local Transcription Prerequisites
 
 For Apple Silicon local transcription with `mlx-whisper`:
@@ -116,6 +276,7 @@ Quick check:
 
 ```bash
 printenv ELEVENLABS_API_KEY  # or whichever key you expect
+podcast-helper doctor         # inspect local runtime status
 ```
 
 ## Preferred Command Form
@@ -284,9 +445,51 @@ If the episode URL is unavailable, clean conservatively using transcript-only ev
 |---------|-----------|-----|
 | Transcription fails (hosted) | Wrong or missing API key | Verify matching env var is set |
 | Transcription fails (local) | `mlx-whisper` not installed | Run `podcast-helper doctor` then `podcast-helper setup mlx-whisper` |
+| YouTube extraction fails | `yt-dlp` not installed or outdated | `brew install yt-dlp` or `pip install -U yt-dlp` |
+| Spotify URL rejected | DRM-protected content | Find the same episode on Apple Podcasts or its RSS feed |
 | Source resolution fails | URL unreachable or audio hidden | Verify URL; download audio manually and pass file path |
 | Build missing (`dist/cli.js`) | Repository not built | Run `pnpm run check && pnpm run build` |
 | Cleanup quality poor | Page context insufficient | Re-fetch Jina Reader page; prefer fewer edits if lacking context |
+
+## Multi-Agent Support
+
+This skill works across different AI coding agents with platform-specific activation.
+
+### OpenClaw / ClawdHub (Recommended)
+
+**Activation**: Workspace injection via skill directory
+**Setup**: `clawdhub install dairui1/podcast-helper --skill transcribe`
+**Detection**: Automatic via workspace skill loading
+**Inter-session**: Share transcription results via `sessions_send`
+
+### Claude Code
+
+**Activation**: Auto-loaded from `skills/transcribe/SKILL.md`
+**Setup**: `npx skills add dairui1/podcast-helper --skill transcribe`
+**Tools**: Declared in `allowed-tools` frontmatter; granted automatically
+**Hooks**: Optional `PostToolUse` hook for cleanup reminders (see Claude Code Setup)
+
+### Codex CLI
+
+**Activation**: Manual reference in agent config
+**Setup**: Copy `SKILL.md` to project and reference from `AGENTS.md`
+**Detection**: Agent reads `AGENTS.md` at session start
+
+### GitHub Copilot
+
+**Activation**: Manual (no skill auto-loading)
+**Setup**: Add transcription workflow to `.github/copilot-instructions.md` (see Generic Setup)
+**Detection**: Manual — user invokes via chat prompt
+
+### Agent-Agnostic Guidance
+
+Regardless of platform, apply this skill when:
+
+1. **User shares a podcast URL** — any supported platform or generic episode page
+2. **User has an audio file** — local or remote, needs transcription
+3. **User wants subtitles** — `.srt` generation from audio
+4. **User mentions ASR cleanup** — polishing a raw transcript
+5. **User asks about podcast-helper** — CLI usage, engine selection, setup
 
 ## Agent Best Practices
 
@@ -298,6 +501,8 @@ If the episode URL is unavailable, clean conservatively using transcript-only ev
 6. **Let CLI auto-detect** — only force `--engine` when the user asks for a specific backend
 7. **Ask before cleanup** — don't assume the user wants transcript polishing
 8. **Conservative cleanup** — preserve speaker intent; fewer edits are better than hallucinated fixes
+9. **YouTube needs yt-dlp** — verify installation before attempting YouTube URLs
+10. **Spotify is unsupported** — suggest Apple Podcasts or RSS feed as alternative
 
 ## Install This Skill
 
