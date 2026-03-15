@@ -1,10 +1,12 @@
-import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
-import { spawn, spawnSync } from "node:child_process";
-import { dirname, resolve } from "node:path";
+import { spawn } from "node:child_process";
+import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { fileURLToPath } from "node:url";
 
+import {
+  resolveMlxWhisperHelperScriptPath,
+  resolveMlxWhisperPythonExecutable,
+} from "./mlx-whisper-runtime";
 import type { SttProvider } from "./provider";
 import type { TranscriptResult, TranscriptSegment, WorkflowEvent } from "./types";
 
@@ -27,11 +29,6 @@ interface CommandRunnerInput {
   onStderrLine?: (line: string) => void;
 }
 
-interface MlxWhisperAvailabilityOptions {
-  pythonExecutable?: string;
-  helperScriptPath?: string;
-}
-
 type CommandRunner = (input: CommandRunnerInput) => Promise<CommandResult>;
 
 interface MlxWhisperPayload {
@@ -50,8 +47,9 @@ export function createMlxWhisperProvider(
   options: CreateMlxWhisperProviderOptions = {}
 ): SttProvider {
   const runner = options.runner ?? runCommand;
-  const pythonExecutable = resolvePythonExecutable(options.pythonExecutable);
-  const helperScriptPath = options.helperScriptPath ?? resolveHelperScriptPath();
+  const pythonExecutable = resolveMlxWhisperPythonExecutable(options.pythonExecutable);
+  const helperScriptPath =
+    options.helperScriptPath ?? resolveMlxWhisperHelperScriptPath();
 
   return {
     name: "mlx-whisper",
@@ -151,62 +149,6 @@ export function createMlxWhisperProvider(
       }
     },
   };
-}
-
-export function isMlxWhisperAvailable(
-  options: MlxWhisperAvailabilityOptions = {}
-): boolean {
-  try {
-    const pythonExecutable = resolvePythonExecutable(options.pythonExecutable);
-    const helperScriptPath = options.helperScriptPath ?? resolveHelperScriptPath();
-
-    if (!existsSync(helperScriptPath)) {
-      return false;
-    }
-
-    const result = spawnSync(
-      pythonExecutable,
-      [
-        "-c",
-        "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('mlx_whisper') else 1)",
-      ],
-      {
-        env: process.env,
-        encoding: "utf8",
-        stdio: "ignore",
-        timeout: 10_000,
-      }
-    );
-
-    return result.status === 0;
-  } catch {
-    return false;
-  }
-}
-
-function resolvePythonExecutable(pythonExecutable?: string): string {
-  return (
-    pythonExecutable ??
-    process.env.PODCAST_HELPER_PYTHON ??
-    process.env.MLX_WHISPER_PYTHON ??
-    "python3"
-  );
-}
-
-function resolveHelperScriptPath(): string {
-  const currentDir = dirname(fileURLToPath(import.meta.url));
-  const candidates = [
-    resolve(currentDir, "../../scripts/mlx_whisper_transcribe.py"),
-    resolve(currentDir, "../scripts/mlx_whisper_transcribe.py"),
-  ];
-
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-  }
-
-  throw new Error("Could not locate mlx_whisper_transcribe.py in the installed package.");
 }
 
 async function runCommand({
@@ -314,7 +256,7 @@ function wrapMlxWhisperError(error: unknown): Error {
 
   if (code === "ENOENT" || /No module named ['"]mlx_whisper['"]/.test(message)) {
     return new Error(
-      "mlx-whisper is not available. Install it with `python3 -m pip install mlx-whisper` and ensure ffmpeg is installed."
+      "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime."
     );
   }
 

@@ -42,7 +42,7 @@ Planned next:
 - Node.js 20+
 - One provider API key for remote transcription:
   `ELEVENLABS_API_KEY`, `OPENAI_API_KEY`, `GROQ_API_KEY`, `DEEPGRAM_API_KEY`, `GLADIA_API_KEY`, `ASSEMBLYAI_API_KEY`, or `REVAI_API_KEY`
-- `ffmpeg` and `python3 -m pip install mlx-whisper` for local Apple Silicon transcription
+- `ffmpeg` and `python3` for local Apple Silicon transcription
 
 ## Default Engine Selection
 
@@ -67,6 +67,12 @@ Run without installing globally:
 ```bash
 npx podcast-helper --help
 pnpm dlx podcast-helper --help
+```
+
+Inspect the local environment before enabling local transcription:
+
+```bash
+npx podcast-helper doctor
 ```
 
 Transcribe a podcast episode page or audio file:
@@ -94,10 +100,11 @@ pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-
 Apple Silicon local transcription with `mlx-whisper`:
 
 ```bash
-brew install ffmpeg
-python3 -m pip install mlx-whisper
+npx podcast-helper setup mlx-whisper
 npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
 ```
+
+The setup command installs `mlx-whisper` into a stable virtual environment under `~/.podcast-helper/venvs/mlx-whisper`, and the CLI will auto-detect it on future runs.
 
 Chunked local transcription with streaming progress:
 
@@ -169,7 +176,7 @@ podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 Transcribe locally on Apple Silicon with `mlx-whisper`:
 
 ```bash
-python3 -m pip install mlx-whisper
+npx podcast-helper setup mlx-whisper
 podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
 ```
 
@@ -183,6 +190,8 @@ Example output:
 
 ```json
 {
+  "ok": true,
+  "command": "transcribe",
   "input": "https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2",
   "source": "xiaoyuzhou",
   "episodeId": "69b4d2f9f8b8079bfa3ae7f2",
@@ -194,6 +203,29 @@ Example output:
   }
 }
 ```
+
+Example failure output on `stderr` when `--json` is enabled:
+
+```json
+{
+  "ok": false,
+  "command": "transcribe",
+  "error": {
+    "code": "MLX_WHISPER_UNAVAILABLE",
+    "category": "dependency",
+    "message": "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime.",
+    "hints": [
+      "Run `podcast-helper doctor` to inspect the local runtime.",
+      "Run `podcast-helper setup mlx-whisper` to install the local runtime."
+    ]
+  }
+}
+```
+
+For agent automation, prefer:
+
+- `--json` for a stable success or failure envelope
+- `--progress jsonl` for machine-readable progress and terminal error events on `stderr`
 
 ## Agent Skill
 
@@ -243,7 +275,10 @@ For local Apple Silicon runs, the workflow now uses:
 - a per-request temp workspace
 - FFmpeg chunking with a default chunk size of `300` seconds for `mlx-whisper`
 - chunk-by-chunk progress and partial transcript events on `stderr`
+- structured error payloads for agents when `--json` or `--progress jsonl` is enabled
 - automatic cleanup unless `--keep-temp` is set
+- `podcast-helper doctor` to inspect the local runtime
+- `podcast-helper setup mlx-whisper` to install the local runtime into a stable venv
 
 For low-cost live verification, the skill recommends:
 
@@ -283,7 +318,8 @@ pnpm run test:live
 Run the local `mlx-whisper` live test:
 
 ```bash
-export MLX_WHISPER_PYTHON="$(which python3)"
+npx podcast-helper setup mlx-whisper
+export MLX_WHISPER_PYTHON="$HOME/.podcast-helper/venvs/mlx-whisper/bin/python"
 pnpm run test:live
 ```
 

@@ -69,7 +69,8 @@ Other supported remote providers:
 For Apple Silicon local transcription with `mlx-whisper`:
 
 - `ffmpeg` must be installed
-- `python3 -m pip install mlx-whisper`
+- `python3` must be available
+- `podcast-helper setup mlx-whisper` installs the local runtime into a stable venv
 
 Check the API key first if transcription is expected to run:
 
@@ -108,7 +109,8 @@ The local workflow defaults to:
 Why:
 
 - Progress goes to `stderr`
-- Final artifact paths are emitted as JSON on `stdout`
+- Final success payloads are emitted as JSON on `stdout`
+- Structured failure payloads are emitted as JSON on `stderr`
 - Agents can parse the output without scraping logs
 
 ## Output Contract
@@ -123,6 +125,8 @@ Typical JSON output:
 
 ```json
 {
+  "ok": true,
+  "command": "transcribe",
   "input": "https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3",
   "source": "remote-audio-url",
   "language": "eng",
@@ -133,6 +137,26 @@ Typical JSON output:
   }
 }
 ```
+
+Typical JSON failure output on `stderr`:
+
+```json
+{
+  "ok": false,
+  "command": "transcribe",
+  "error": {
+    "code": "SOURCE_RESOLUTION_FAILED",
+    "category": "source",
+    "message": "Could not extract podcast audio from the provided page.",
+    "hints": [
+      "Pass the original episode page URL, a direct audio URL, or a local audio file.",
+      "If this site hides audio metadata, download the audio separately and rerun `transcribe` with the file path."
+    ]
+  }
+}
+```
+
+If you need machine-readable progress and terminal failures on the same stream, use `--progress jsonl`.
 
 ## Default Workflow
 
@@ -189,6 +213,7 @@ node dist/cli.js transcribe <input> --output-dir <dir> --json
 - Report the generated artifact paths back to the user.
 - Prefer `npx` or `pnpm dlx` when the user does not already have the CLI installed.
 - If the user wants local or offline transcription on Apple Silicon, switch to `--engine mlx-whisper`.
+- If local setup is missing, run `podcast-helper doctor` first, then `podcast-helper setup mlx-whisper`.
 - If the user has not asked for a specific backend, check the available provider API keys and let the CLI choose automatically.
 - If the input is a Xiaoyuzhou episode or a public podcast episode page, the CLI resolves and downloads the source audio automatically.
 - After transcription, if the user appears to want a polished transcript, ask whether they also want cleanup.
@@ -244,7 +269,8 @@ If transcription fails:
 
 - Verify which backend was selected
 - If a hosted backend was selected, verify the matching API key is present
-- If local `mlx-whisper` was selected, verify `ffmpeg` and `mlx-whisper` are installed
+- If local `mlx-whisper` was selected, run `podcast-helper doctor`
+- If local `mlx-whisper` is missing, run `podcast-helper setup mlx-whisper`
 - Verify the input URL is reachable
 - Re-run with a fresh output directory
 - If using the repository build, run `pnpm run check` and `pnpm run build`

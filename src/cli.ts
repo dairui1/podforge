@@ -2,18 +2,93 @@ import { createRequire } from "node:module";
 
 import { Command } from "commander";
 
+import {
+  detectCliContext,
+  isCommanderGracefulExit,
+  normalizeCliError,
+  renderCliErrorEnvelope,
+  renderCliErrorEvent,
+  renderCliErrorPlain,
+  type CliProgressMode,
+  wrapSuccessPayload,
+} from "./cli-support";
 import { createDefaultSourceAdapters } from "./sources";
 import { createTranscriptionProvider } from "./transcribe/factory";
+import {
+  createDoctorReport,
+  setupMlxWhisper,
+  type DoctorReport,
+  type SetupResult,
+} from "./transcribe/mlx-whisper-runtime";
 import type { WorkflowEvent } from "./transcribe/types";
 import { transcribeInput } from "./transcribe/workflow";
 
 const require = createRequire(import.meta.url);
 const packageJson = require("../package.json") as { version: string };
+const cliContext = detectCliContext(process.argv.slice(2));
 
 const program = new Command()
   .name("podcast-helper")
   .description("Download podcast audio and generate transcript artifacts.")
-  .version(packageJson.version);
+  .version(packageJson.version)
+  .configureOutput({
+    writeErr() {},
+  })
+  .exitOverride();
+
+program
+  .command("doctor")
+  .description("Inspect the local environment for podcast-helper transcription.")
+  .option(
+    "--python-executable <path>",
+    "Python interpreter to verify for local mlx-whisper runs"
+  )
+  .option("--json", "Print the doctor report as JSON", false)
+  .action((options) => {
+    const report = createDoctorReport({
+      pythonExecutable: options.pythonExecutable,
+    });
+
+    if (options.json) {
+      process.stdout.write(
+        `${JSON.stringify(wrapSuccessPayload("doctor", report), null, 2)}\n`
+      );
+      return;
+    }
+
+    process.stdout.write(renderDoctorReport(report));
+  });
+
+program
+  .command("setup")
+  .description("Install local runtime dependencies for podcast-helper.")
+  .argument("<target>", "Setup target. Currently supported: mlx-whisper")
+  .option(
+    "--python-executable <path>",
+    "Base Python interpreter used to create the local mlx-whisper environment"
+  )
+  .option("--json", "Print the setup result as JSON", false)
+  .action(async (target, options) => {
+    if (target !== "mlx-whisper") {
+      throw new Error(`Unsupported setup target: ${target}. Expected: mlx-whisper.`);
+    }
+
+    const result = await setupMlxWhisper({
+      pythonExecutable: options.pythonExecutable,
+      onProgress(message) {
+        process.stderr.write(`${message}\n`);
+      },
+    });
+
+    if (options.json) {
+      process.stdout.write(
+        `${JSON.stringify(wrapSuccessPayload("setup", result), null, 2)}\n`
+      );
+      return;
+    }
+
+    process.stdout.write(renderSetupResult(result));
+  });
 
 program
   .command("transcribe")
@@ -31,8 +106,7 @@ program
   .option("--language <code>", "Force transcription language")
   .option(
     "--python-executable <path>",
-    "Python interpreter for local mlx-whisper runs",
-    process.env.PODCAST_HELPER_PYTHON || process.env.MLX_WHISPER_PYTHON || "python3"
+    "Python interpreter for local mlx-whisper runs. Defaults to auto-detection."
   )
   .option(
     "--chunk-duration <seconds>",
@@ -65,7 +139,9 @@ program
     });
 
     if (options.json) {
-      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      process.stdout.write(
+        `${JSON.stringify(wrapSuccessPayload("transcribe", result), null, 2)}\n`
+      );
       return;
     }
 
@@ -75,9 +151,22 @@ program
   });
 
 program.parseAsync(process.argv).catch((error: unknown) => {
-  const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`${message}\n`);
-  process.exitCode = 1;
+  if (isCommanderGracefulExit(error)) {
+    process.exitCode = 0;
+    return;
+  }
+
+  const normalized = normalizeCliError(error, cliContext);
+
+  if (cliContext.progressMode === "jsonl") {
+    process.stderr.write(renderCliErrorEvent(cliContext.command, normalized));
+  } else if (cliContext.json) {
+    process.stderr.write(renderCliErrorEnvelope(cliContext.command, normalized));
+  } else {
+    process.stderr.write(renderCliErrorPlain(normalized));
+  }
+
+  process.exitCode = normalized.exitCode;
 });
 
 function parseChunkDuration(value: string | undefined): number | undefined {
@@ -93,7 +182,7 @@ function parseChunkDuration(value: string | undefined): number | undefined {
   return parsed;
 }
 
-function parseProgressMode(value: string): "plain" | "jsonl" | "none" {
+function parseProgressMode(value: string): CliProgressMode {
   switch (value) {
     case "plain":
     case "jsonl":
@@ -106,7 +195,7 @@ function parseProgressMode(value: string): "plain" | "jsonl" | "none" {
 
 function renderWorkflowEvent(
   event: WorkflowEvent,
-  mode: "plain" | "jsonl" | "none"
+  mode: CliProgressMode
 ): void {
   if (mode === "none") {
     return;
@@ -125,4 +214,45 @@ function renderWorkflowEvent(
   }
 
   process.stderr.write(`${event.message}\n`);
+}
+
+function renderDoctorReport(report: DoctorReport): string {
+  const lines = [
+    `Platform: ${report.platform.os} ${report.platform.arch} (${report.platform.supported ? "Apple Silicon local transcription supported" : "hosted transcription recommended"})`,
+    `Helper script: ${report.helperScript.ok ? report.helperScript.path : report.helperScript.error}`,
+    `ffmpeg: ${report.ffmpeg.ok ? report.ffmpeg.path : "missing"}`,
+    `python3: ${report.python3.ok ? report.python3.path : "missing"}`,
+    `Configured Python: ${report.configuredPython.path} [${report.configuredPython.source}]`,
+    `Default mlx-whisper venv: ${report.defaultVenv.path}${report.defaultVenv.exists ? " (present)" : " (missing)"}`,
+    `mlx-whisper: ${report.mlxWhisper.available ? "available" : "not available"}`,
+    `Recommended engine: ${report.recommendedEngine}`,
+    `Remote keys: ${Object.entries(report.remoteKeys)
+      .map(([envVar, present]) => `${envVar}=${present ? "present" : "missing"}`)
+      .join(", ")}`,
+  ];
+
+  if (report.nextSteps.length > 0) {
+    lines.push("");
+    lines.push("Next steps:");
+    for (const step of report.nextSteps) {
+      lines.push(`- ${step}`);
+    }
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+function renderSetupResult(result: SetupResult): string {
+  const lines = [
+    "Local mlx-whisper setup completed.",
+    `Target: ${result.target}`,
+    `Venv: ${result.venvDir}`,
+    `Python: ${result.pythonExecutable}`,
+    `ffmpeg: ${result.ffmpegPath}`,
+    `Helper script: ${result.helperScriptPath}`,
+    "",
+    "The CLI will auto-detect this install on future runs.",
+  ];
+
+  return `${lines.join("\n")}\n`;
 }

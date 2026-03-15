@@ -38,7 +38,7 @@
 - Node.js 20+
 - 如果使用远程转录，需要至少一个 provider key：
   `ELEVENLABS_API_KEY`、`OPENAI_API_KEY`、`GROQ_API_KEY`、`DEEPGRAM_API_KEY`、`GLADIA_API_KEY`、`ASSEMBLYAI_API_KEY`、`REVAI_API_KEY`
-- 如果使用本地 Apple Silicon 转录，需要 `ffmpeg` 和 `python3 -m pip install mlx-whisper`
+- 如果使用本地 Apple Silicon 转录，需要 `ffmpeg` 和 `python3`
 
 ## 默认引擎选择
 
@@ -63,6 +63,12 @@
 ```bash
 npx podcast-helper --help
 pnpm dlx podcast-helper --help
+```
+
+如果要先检查本地环境：
+
+```bash
+npx podcast-helper doctor
 ```
 
 转录播客单集页面或音频文件：
@@ -90,10 +96,11 @@ pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-
 Apple Silicon 本地转录，使用 `mlx-whisper`：
 
 ```bash
-brew install ffmpeg
-python3 -m pip install mlx-whisper
+npx podcast-helper setup mlx-whisper
 npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
 ```
+
+`setup` 会把 `mlx-whisper` 安装到稳定的虚拟环境 `~/.podcast-helper/venvs/mlx-whisper` 下，后续 CLI 会自动发现并优先使用它。
 
 本地分块转录，并输出流式进度：
 
@@ -165,7 +172,7 @@ podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 在 Apple Silicon 上使用 `mlx-whisper` 做本地转录：
 
 ```bash
-python3 -m pip install mlx-whisper
+npx podcast-helper setup mlx-whisper
 podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
 ```
 
@@ -179,6 +186,8 @@ podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp
 
 ```json
 {
+  "ok": true,
+  "command": "transcribe",
   "input": "https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2",
   "source": "xiaoyuzhou",
   "episodeId": "69b4d2f9f8b8079bfa3ae7f2",
@@ -190,6 +199,29 @@ podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp
   }
 }
 ```
+
+开启 `--json` 时，失败会在 `stderr` 输出结构化错误：
+
+```json
+{
+  "ok": false,
+  "command": "transcribe",
+  "error": {
+    "code": "MLX_WHISPER_UNAVAILABLE",
+    "category": "dependency",
+    "message": "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime.",
+    "hints": [
+      "Run `podcast-helper doctor` to inspect the local runtime.",
+      "Run `podcast-helper setup mlx-whisper` to install the local runtime."
+    ]
+  }
+}
+```
+
+如果是 agent 自动化场景，推荐：
+
+- 用 `--json` 获取稳定的成功/失败包体
+- 用 `--progress jsonl` 获取 `stderr` 上的机器可读进度和最终错误事件
 
 ## Agent Skill
 
@@ -239,7 +271,10 @@ pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
 - 每次请求一个独立的临时目录
 - `mlx-whisper` 默认按 `300` 秒分块
 - `stderr` 持续输出 chunk 级别进度和 partial transcript
+- 开启 `--json` 或 `--progress jsonl` 时会输出结构化错误信息，便于 agent 处理
 - 完成后自动清理，除非显式传 `--keep-temp`
+- `podcast-helper doctor` 用来检查本地环境
+- `podcast-helper setup mlx-whisper` 用来安装本地运行时
 
 如果只是做低成本真实验证，skill 里推荐优先使用：
 
@@ -279,7 +314,8 @@ pnpm run test:live
 运行本地 `mlx-whisper` live test：
 
 ```bash
-export MLX_WHISPER_PYTHON="$(which python3)"
+npx podcast-helper setup mlx-whisper
+export MLX_WHISPER_PYTHON="$HOME/.podcast-helper/venvs/mlx-whisper/bin/python"
 pnpm run test:live
 ```
 

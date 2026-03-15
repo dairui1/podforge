@@ -1,6 +1,7 @@
 import { createAiSdkRemoteProvider, hasRemoteProviderEnv } from "./ai-sdk-remote";
 import { createElevenLabsProvider } from "./elevenlabs";
-import { createMlxWhisperProvider, isMlxWhisperAvailable } from "./mlx-whisper";
+import { createMlxWhisperProvider } from "./mlx-whisper";
+import { isMlxWhisperAvailable } from "./mlx-whisper-runtime";
 import type { SttProvider } from "./provider";
 
 interface CreateTranscriptionProviderOptions {
