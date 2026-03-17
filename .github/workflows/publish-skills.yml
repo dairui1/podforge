@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20
+          package-manager-cache: false
 
       - name: Build skill publish matrix
         id: discover
@@ -50,6 +51,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20
+          package-manager-cache: false
 
       - name: Install ClawHub CLI
         run: npm install --global clawhub
