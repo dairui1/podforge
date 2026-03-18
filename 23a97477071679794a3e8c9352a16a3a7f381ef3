@@ -1,0 +1,24 @@
+skills/transcribe/SKILL.md
+  b1be5f453fc4440b 3,6,12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "23a97477071679794a3e8c9352a16a3a7f381ef3",
+  "prompts": {
+    "b1be5f453fc4440b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019cfef9-4adc-7bf3-9f3f-753e1114cda6",
+        "model": "gpt-5.4"
+      },
+      "human_author": "linyongcong <linyongcong@codeck.ai>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 14,
+      "accepted_lines": 3,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/2f2e42cb415a7603b35a1ce9110daad085b5abd81680ef8b817344062b0246fa"
+    }
+  }
+}
