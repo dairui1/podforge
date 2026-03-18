@@ -1,26 +1,15 @@
 ---
 name: transcribe
-description: "Use podcast-helper to transcribe podcast URLs, public audio URLs/files, or raw transcripts into audio + SRT + TXT artifacts, with optional transcript cleanup from episode-page context. Trigger for subtitle requests, transcript extraction, podcast episode URLs, or transcript polishing. Prefer no-install `npx podcast-helper` or `pnpm dlx podcast-helper`, report artifact paths, and ask before cleanup."
+description: "For transcript or subtitle requests involving podcast URLs, public audio URLs/files, or raw transcript cleanup. Generates audio + SRT + TXT artifacts and can optionally clean transcripts with episode-page context."
 allowed-tools: Bash(curl:*), Bash(podcast-helper:*), Bash(npx podcast-helper:*), Bash(pnpm dlx podcast-helper:*), Bash(node dist/cli.js:*), Bash(pnpm run build:*)
 metadata:
-  version: "1.4.0"
+  version: "1.4.1"
   tags: [podcast, transcription, audio, subtitles, asr, cleanup]
 ---
 
 # Transcribe with podcast-helper
 
-Use this skill when the user wants transcript artifacts from a podcast episode or audio file, or wants a raw transcript cleaned with episode-page context.
-
-## Triggering
-
-Activate this skill when the user:
-
-- shares a podcast URL, direct audio URL, or local audio file
-- asks for a transcript or subtitle file such as `.srt`
-- wants to polish or clean a raw ASR transcript
-- asks how to use `podcast-helper` for transcription
-
-Do not activate this skill for pure summarization or editorial rewriting unless transcription or cleanup is part of the request.
+Generate transcript artifacts from a podcast episode, audio file, or raw transcript, with an optional cleanup pass that uses episode-page context.
 
 ## Default Workflow
 

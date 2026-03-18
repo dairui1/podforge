@@ -268,6 +268,19 @@ skill 文件在：
 - 使用 ClawHub workflow 前，需要先配置仓库 secret `CLAWHUB_TOKEN`。
 - skill 的 `metadata.version` 现在建议始终使用 semver，例如 `1.4.0`，因为 ClawHub publish 需要 semver。
 
+发布步骤：
+
+1. 先修改 `skills/<skill>/SKILL.md` 里的 `metadata.version`。
+2. 把变更 commit 并 push 到 `main`。
+3. 创建 GitHub release，让 `published` 事件触发 ClawHub 发布：
+
+```bash
+gh release create v<下一个 package 版本> --target main --generate-notes
+```
+
+4. 打开 [`.github/workflows/publish-skills.yml`](./.github/workflows/publish-skills.yml) 对应的 Actions 运行，确认每个 skill 都成功发布。
+5. 如果 release 已经创建过，或者只是想重跑 ClawHub 发布，也可以手动触发同一个 workflow 的 `workflow_dispatch`。
+
 这个 skill 会引导 agent 优先使用免安装入口：
 
 ```bash

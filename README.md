@@ -273,6 +273,19 @@ Distribution:
 - Configure the repository secret `CLAWHUB_TOKEN` before using the ClawHub workflow.
 - Skill metadata versions should stay semver because ClawHub publish expects semver, for example `1.4.0`.
 
+Release flow:
+
+1. Bump the skill version in `skills/<skill>/SKILL.md` `metadata.version`.
+2. Commit and push the changes on `main`.
+3. Create a GitHub release so the `published` event triggers ClawHub publish:
+
+```bash
+gh release create v<next-package-version> --target main --generate-notes
+```
+
+4. Open the Actions run for [`.github/workflows/publish-skills.yml`](./.github/workflows/publish-skills.yml) and confirm each skill publishes successfully.
+5. If the release already exists or you only need to rerun ClawHub publish, trigger the same workflow manually with `workflow_dispatch`.
+
 The skill teaches agents to prefer no-install entry points first:
 
 ```bash
