@@ -50,7 +50,7 @@ describe("cli support", () => {
 
     expect(error.code).toBe("MISSING_ARGUMENT");
     expect(error.exitCode).toBe(2);
-    expect(error.hints).toContain("Use `podcast-helper transcribe --help` for usage.");
+    expect(error.hints).toContain("Use `podforge transcribe --help` for usage.");
   });
 
   test("normalizes mlx-whisper setup dependency errors", () => {
@@ -70,7 +70,7 @@ describe("cli support", () => {
 
   test("renders json error envelopes for agents", () => {
     const error = normalizeCliError(
-      new Error("mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime."),
+      new Error("mlx-whisper is not available. Run `podforge doctor` to inspect your environment, then `podforge setup mlx-whisper` to install the local runtime."),
       {
         command: "transcribe",
         json: true,
@@ -85,10 +85,10 @@ describe("cli support", () => {
         code: "MLX_WHISPER_UNAVAILABLE",
         category: "dependency",
         message:
-          "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime.",
+          "mlx-whisper is not available. Run `podforge doctor` to inspect your environment, then `podforge setup mlx-whisper` to install the local runtime.",
         hints: [
-          "Run `podcast-helper doctor` to inspect the local runtime.",
-          "Run `podcast-helper setup mlx-whisper` to install the local runtime.",
+          "Run `podforge doctor` to inspect the local runtime.",
+          "Run `podforge setup mlx-whisper` to install the local runtime.",
         ],
       },
     });

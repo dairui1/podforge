@@ -63,7 +63,7 @@ export function createMlxWhisperProvider(
       onEvent?: (event: WorkflowEvent) => void;
     }): Promise<TranscriptResult> {
       const ownedWorkDir = !workDir;
-      const effectiveWorkDir = workDir ?? (await mkdtemp(resolve(tmpdir(), "podcast-helper-mlx-")));
+      const effectiveWorkDir = workDir ?? (await mkdtemp(resolve(tmpdir(), "podforge-mlx-")));
       await mkdir(effectiveWorkDir, { recursive: true });
       const outputJsonPath = resolve(effectiveWorkDir, "transcript.json");
 
@@ -256,7 +256,7 @@ function wrapMlxWhisperError(error: unknown): Error {
 
   if (code === "ENOENT" || /No module named ['"]mlx_whisper['"]/.test(message)) {
     return new Error(
-      "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime."
+      "mlx-whisper is not available. Run `podforge doctor` to inspect your environment, then `podforge setup mlx-whisper` to install the local runtime."
     );
   }
 

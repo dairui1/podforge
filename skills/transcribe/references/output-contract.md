@@ -3,7 +3,7 @@
 Prefer machine-readable output:
 
 ```bash
-npx podcast-helper transcribe <input> --output-dir <dir> --json
+npx podforge transcribe <input> --output-dir <dir> --json
 ```
 
 Add `--progress jsonl` when you want machine-readable progress events and terminal failure events on `stderr`.

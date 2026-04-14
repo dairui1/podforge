@@ -70,7 +70,7 @@ describe("AI SDK remote transcription provider", async () => {
   });
 
   test("maps OpenAI transcription results into transcript artifacts", async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-openai-provider-"));
+    const tempDir = await mkdtemp(join(tmpdir(), "podforge-openai-provider-"));
     const audioPath = join(tempDir, "audio.mp3");
     await writeFile(audioPath, Buffer.from("fake-audio"));
 
@@ -112,7 +112,7 @@ describe("AI SDK remote transcription provider", async () => {
   });
 
   test("uses Gladia without requiring an explicit model id", async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-gladia-provider-"));
+    const tempDir = await mkdtemp(join(tmpdir(), "podforge-gladia-provider-"));
     const audioPath = join(tempDir, "audio.mp3");
     await writeFile(audioPath, Buffer.from("fake-audio"));
 
@@ -139,7 +139,7 @@ describe("AI SDK remote transcription provider", async () => {
   });
 
   test("enables Deepgram language detection when no language is forced", async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-deepgram-provider-"));
+    const tempDir = await mkdtemp(join(tmpdir(), "podforge-deepgram-provider-"));
     const audioPath = join(tempDir, "audio.mp3");
     await writeFile(audioPath, Buffer.from("fake-audio"));
 
@@ -168,7 +168,7 @@ describe("AI SDK remote transcription provider", async () => {
   });
 
   test("passes Gladia language options in the flat providerOptions shape", async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-gladia-language-provider-"));
+    const tempDir = await mkdtemp(join(tmpdir(), "podforge-gladia-language-provider-"));
     const audioPath = join(tempDir, "audio.mp3");
     await writeFile(audioPath, Buffer.from("fake-audio"));
 

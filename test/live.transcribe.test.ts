@@ -13,7 +13,7 @@ describe("live transcription", () => {
   liveTest(
     "transcribes a small public mp3 with ElevenLabs",
     async () => {
-      const outputDir = await mkdtemp(join(tmpdir(), "podcast-helper-live-"));
+      const outputDir = await mkdtemp(join(tmpdir(), "podforge-live-"));
 
       try {
         const result = await transcribeInput({

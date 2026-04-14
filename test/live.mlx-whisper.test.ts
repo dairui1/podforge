@@ -13,7 +13,7 @@ describe("live mlx-whisper transcription", () => {
   liveTest(
     "transcribes a small public mp3 with local mlx-whisper",
     async () => {
-      const outputDir = await mkdtemp(join(tmpdir(), "podcast-helper-mlx-live-"));
+      const outputDir = await mkdtemp(join(tmpdir(), "podforge-mlx-live-"));
 
       try {
         const result = await transcribeInput({

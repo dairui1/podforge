@@ -81,7 +81,7 @@ export function normalizeCliError(
       code: "UNSUPPORTED_SETUP_TARGET",
       category: "usage",
       message,
-      hints: ["Use `podcast-helper setup mlx-whisper`."],
+      hints: ["Use `podforge setup mlx-whisper`."],
       exitCode: 2,
     });
   }
@@ -160,8 +160,8 @@ export function normalizeCliError(
       category: "dependency",
       message,
       hints: [
-        "Run `podcast-helper doctor` to inspect the local runtime.",
-        "Run `podcast-helper setup mlx-whisper` to install the local runtime.",
+        "Run `podforge doctor` to inspect the local runtime.",
+        "Run `podforge setup mlx-whisper` to install the local runtime.",
       ],
       exitCode: 3,
     });
@@ -228,7 +228,7 @@ export function normalizeCliError(
       message,
       hints: [
         "Retry with `--progress jsonl` to inspect per-stage events.",
-        "If local transcription was selected, run `podcast-helper doctor` to verify the runtime.",
+        "If local transcription was selected, run `podforge doctor` to verify the runtime.",
       ],
       exitCode: 4,
     });
@@ -339,7 +339,7 @@ function normalizeCommanderError(
       code: "UNKNOWN_COMMAND",
       category: "usage",
       message: error.message.replace(/^error:\s*/i, ""),
-      hints: ["Use `podcast-helper --help` to list available commands."],
+      hints: ["Use `podforge --help` to list available commands."],
       exitCode: 2,
     });
   }
@@ -355,10 +355,10 @@ function normalizeCommanderError(
 
 function buildHelpHint(command: CliCommandName): string {
   if (command === "unknown") {
-    return "Use `podcast-helper --help` for usage.";
+    return "Use `podforge --help` for usage.";
   }
 
-  return `Use \`podcast-helper ${command} --help\` for usage.`;
+  return `Use \`podforge ${command} --help\` for usage.`;
 }
 
 function detectCommand(argv: string[]): CliCommandName {

@@ -1,8 +1,8 @@
-# podcast-helper
+# podforge
 
 [简体中文](./README.zh-CN.md)
 
-`podcast-helper` is a Node-based CLI for podcast download and transcription workflows.
+`podforge` is a Node-based CLI for podcast download and transcription workflows.
 
 The project currently focuses on one concrete workflow:
 
@@ -60,7 +60,7 @@ Planned next:
 
 ## Default Engine Selection
 
-`podcast-helper` chooses the transcription engine automatically:
+`podforge` chooses the transcription engine automatically:
 
 - If local `mlx-whisper` is available, it uses `mlx-whisper` first
 - `ELEVENLABS_API_KEY` -> `elevenlabs`
@@ -79,20 +79,20 @@ You can always override this with `--engine <provider>`.
 Run without installing globally:
 
 ```bash
-npx podcast-helper --help
-pnpm dlx podcast-helper --help
+npx podforge --help
+pnpm dlx podforge --help
 ```
 
 Inspect the local environment before enabling local transcription:
 
 ```bash
-npx podcast-helper doctor
+npx podforge doctor
 ```
 
 Transcribe a podcast episode page or audio file:
 
 ```bash
-npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podforge transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
 ```
 
 Generic episode-page support works best for public podcast pages that expose:
@@ -108,29 +108,29 @@ Force OpenAI explicitly:
 
 ```bash
 export OPENAI_API_KEY=your_key
-pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine openai --output-dir ./out/openai --json
+pnpm dlx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine openai --output-dir ./out/openai --json
 ```
 
 Apple Silicon local transcription with `mlx-whisper`:
 
 ```bash
-npx podcast-helper setup mlx-whisper
-npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
+npx podforge setup mlx-whisper
+npx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
 ```
 
-The setup command installs `mlx-whisper` into a stable virtual environment under `~/.podcast-helper/venvs/mlx-whisper`, and the CLI will auto-detect it on future runs.
+The setup command installs `mlx-whisper` into a stable virtual environment under `~/.podforge/venvs/mlx-whisper`, and the CLI will auto-detect it on future runs.
 
 Chunked local transcription with streaming progress:
 
 ```bash
-npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --chunk-duration 300 --progress jsonl --output-dir ./out/mlx --json
+npx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --chunk-duration 300 --progress jsonl --output-dir ./out/mlx --json
 ```
 
 If you prefer a persistent install:
 
 ```bash
-npm install -g podcast-helper
-podcast-helper --help
+npm install -g podforge
+podforge --help
 ```
 
 ## Development Requirements
@@ -165,39 +165,39 @@ node dist/cli.js --help
 Transcribe a Xiaoyuzhou episode:
 
 ```bash
-npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podforge transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
 ```
 
 Transcribe a public podcast episode page discovered through generic HTML or feed metadata:
 
 ```bash
-npx podcast-helper transcribe https://example.fm/episodes/42 --output-dir ./out/episode-page --json
+npx podforge transcribe https://example.fm/episodes/42 --output-dir ./out/episode-page --json
 ```
 
 Transcribe a direct audio URL with Groq:
 
 ```bash
 export GROQ_API_KEY=your_key
-pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine groq --output-dir ./out/groq --json
+pnpm dlx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine groq --output-dir ./out/groq --json
 ```
 
 Transcribe a local audio file with automatic engine selection:
 
 ```bash
-podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
+podforge transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 ```
 
 Transcribe locally on Apple Silicon with `mlx-whisper`:
 
 ```bash
-npx podcast-helper setup mlx-whisper
-podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
+npx podforge setup mlx-whisper
+podforge transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
 ```
 
 Keep the isolated temp workspace for debugging:
 
 ```bash
-podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp --output-dir ./out/local-mlx --json
+podforge transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp --output-dir ./out/local-mlx --json
 ```
 
 Example output:
@@ -227,10 +227,10 @@ Example failure output on `stderr` when `--json` is enabled:
   "error": {
     "code": "MLX_WHISPER_UNAVAILABLE",
     "category": "dependency",
-    "message": "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime.",
+    "message": "mlx-whisper is not available. Run `podforge doctor` to inspect your environment, then `podforge setup mlx-whisper` to install the local runtime.",
     "hints": [
-      "Run `podcast-helper doctor` to inspect the local runtime.",
-      "Run `podcast-helper setup mlx-whisper` to install the local runtime."
+      "Run `podforge doctor` to inspect the local runtime.",
+      "Run `podforge setup mlx-whisper` to install the local runtime."
     ]
   }
 }
@@ -252,13 +252,13 @@ This repository ships a single agent skill for the full transcript workflow:
 Install the skill into the current project:
 
 ```bash
-npx skills add dairui1/podcast-helper --skill transcribe
+npx skills add dairui1/podforge --skill transcribe
 ```
 
 Install globally:
 
 ```bash
-npx skills add dairui1/podcast-helper --skill transcribe -g
+npx skills add dairui1/podforge --skill transcribe -g
 ```
 
 The skill lives at:
@@ -267,7 +267,7 @@ The skill lives at:
 
 Distribution:
 
-- `skills.sh` has no separate publish step. This repository is installable with `npx skills add dairui1/podcast-helper --skill transcribe`, and the skill shows up on `skills.sh` after users install it.
+- `skills.sh` has no separate publish step. This repository is installable with `npx skills add dairui1/podforge --skill transcribe`, and the skill shows up on `skills.sh` after users install it.
 - ClawHub supports explicit publishing from the same skill directory. This repository includes [`.github/workflows/publish-skills.yml`](./.github/workflows/publish-skills.yml), which publishes every skill in `./skills` to ClawHub when a GitHub release is published or when the workflow is run manually.
 - If a skill needs a stable ClawHub slug that differs from the local skill name, set it in `skills/<skill>/agents/clawhub.json`.
 - Configure the repository secret `CLAWHUB_TOKEN` before using the ClawHub workflow.
@@ -289,8 +289,8 @@ gh release create v<next-package-version> --target main --generate-notes
 The skill teaches agents to prefer no-install entry points first:
 
 ```bash
-npx podcast-helper transcribe <input> --output-dir <dir> --json
-pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
+npx podforge transcribe <input> --output-dir <dir> --json
+pnpm dlx podforge transcribe <input> --output-dir <dir> --json
 ```
 
 When `--engine` is omitted:
@@ -312,8 +312,8 @@ For local Apple Silicon runs, the workflow now uses:
 - chunk-by-chunk progress and partial transcript events on `stderr`
 - structured error payloads for agents when `--json` or `--progress jsonl` is enabled
 - automatic cleanup unless `--keep-temp` is set
-- `podcast-helper doctor` to inspect the local runtime
-- `podcast-helper setup mlx-whisper` to install the local runtime into a stable venv
+- `podforge doctor` to inspect the local runtime
+- `podforge setup mlx-whisper` to install the local runtime into a stable venv
 
 For low-cost live verification, the skill recommends:
 
@@ -353,8 +353,8 @@ pnpm run test:live
 Run the local `mlx-whisper` live test:
 
 ```bash
-npx podcast-helper setup mlx-whisper
-export MLX_WHISPER_PYTHON="$HOME/.podcast-helper/venvs/mlx-whisper/bin/python"
+npx podforge setup mlx-whisper
+export MLX_WHISPER_PYTHON="$HOME/.podforge/venvs/mlx-whisper/bin/python"
 pnpm run test:live
 ```
 

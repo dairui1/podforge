@@ -14,9 +14,9 @@ describe("mlx-whisper runtime helpers", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-mlx-runtime-"));
-    vi.stubEnv("PODCAST_HELPER_HOME", tempDir);
-    vi.stubEnv("PODCAST_HELPER_PYTHON", "");
+    tempDir = await mkdtemp(join(tmpdir(), "podforge-mlx-runtime-"));
+    vi.stubEnv("PODFORGE_HOME", tempDir);
+    vi.stubEnv("PODFORGE_PYTHON", "");
     vi.stubEnv("MLX_WHISPER_PYTHON", "");
     vi.stubEnv("ELEVENLABS_API_KEY", "");
     vi.stubEnv("OPENAI_API_KEY", "");
@@ -63,7 +63,7 @@ describe("mlx-whisper runtime helpers", () => {
     expect(report.mlxWhisper.available).toBe(false);
     expect(report.recommendedEngine).toBe("mlx-whisper");
     expect(report.nextSteps).toContain(
-      "Run `podcast-helper setup mlx-whisper` to install the local transcription runtime."
+      "Run `podforge setup mlx-whisper` to install the local transcription runtime."
     );
   });
 

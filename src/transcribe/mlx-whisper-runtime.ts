@@ -24,7 +24,7 @@ type CommandRunner = (input: {
 
 type PythonSource =
   | "explicit"
-  | "env:PODCAST_HELPER_PYTHON"
+  | "env:PODFORGE_PYTHON"
   | "env:MLX_WHISPER_PYTHON"
   | "default-venv"
   | "fallback";
@@ -88,8 +88,8 @@ const REMOTE_PROVIDER_ENV_VARS = [
 ] as const;
 
 export function getPodcastHelperHome(): string {
-  const configuredHome = process.env.PODCAST_HELPER_HOME?.trim();
-  return configuredHome ? resolve(configuredHome) : resolve(homedir(), ".podcast-helper");
+  const configuredHome = process.env.PODFORGE_HOME?.trim();
+  return configuredHome ? resolve(configuredHome) : resolve(homedir(), ".podforge");
 }
 
 export function getDefaultMlxWhisperVenvDir(): string {
@@ -116,11 +116,11 @@ export function resolveMlxWhisperPython(
     };
   }
 
-  const podcastHelperPython = process.env.PODCAST_HELPER_PYTHON?.trim();
-  if (podcastHelperPython) {
+  const podforgePython = process.env.PODFORGE_PYTHON?.trim();
+  if (podforgePython) {
     return {
-      path: podcastHelperPython,
-      source: "env:PODCAST_HELPER_PYTHON",
+      path: podforgePython,
+      source: "env:PODFORGE_PYTHON",
     };
   }
 
@@ -291,11 +291,11 @@ export async function setupMlxWhisper(options: {
     throw new Error("ffmpeg is required. Install it first with `brew install ffmpeg`.");
   }
 
-  const configuredPodcastHelperPython = process.env.PODCAST_HELPER_PYTHON?.trim();
+  const configuredPodforgePython = process.env.PODFORGE_PYTHON?.trim();
   const configuredMlxWhisperPython = process.env.MLX_WHISPER_PYTHON?.trim();
   const basePython =
     options.pythonExecutable ??
-    (configuredPodcastHelperPython || undefined) ??
+    (configuredPodforgePython || undefined) ??
     (configuredMlxWhisperPython || undefined) ??
     commandFinder("python3");
   if (!basePython) {
@@ -420,7 +420,7 @@ function buildDoctorNextSteps(options: {
     options.python3Available &&
     !options.mlxWhisperAvailable
   ) {
-    nextSteps.push("Run `podcast-helper setup mlx-whisper` to install the local transcription runtime.");
+    nextSteps.push("Run `podforge setup mlx-whisper` to install the local transcription runtime.");
   }
 
   if (!Object.values(options.remoteKeys).some(Boolean) && !options.mlxWhisperAvailable) {

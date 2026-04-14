@@ -56,7 +56,7 @@ export async function transcribeInput(options: TranscribeInputOptions): Promise<
 
   const sessionRoot = resolve(options.tempRootDir ?? tmpdir());
   await mkdir(sessionRoot, { recursive: true });
-  const sessionDir = await mkdtemp(join(sessionRoot, "podcast-helper-session-"));
+  const sessionDir = await mkdtemp(join(sessionRoot, "podforge-session-"));
 
   options.onEvent?.({
     type: "session.started",

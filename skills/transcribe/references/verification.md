@@ -9,7 +9,7 @@ https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3
 ## Smoke Test
 
 ```bash
-npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
+npx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --output-dir ./out/smoke --json
 ```
 
 ## What to Verify
@@ -24,8 +24,8 @@ npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/a
 If local `mlx-whisper` is failing:
 
 ```bash
-podcast-helper doctor
-podcast-helper setup mlx-whisper
+podforge doctor
+podforge setup mlx-whisper
 ```
 
 When debugging progress or chunking behavior, rerun with `--progress jsonl`.

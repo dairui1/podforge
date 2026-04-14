@@ -7,13 +7,13 @@ This file is for installation and platform-specific activation details. It is no
 Project-local install:
 
 ```bash
-npx skills add dairui1/podcast-helper --skill transcribe
+npx skills add dairui1/podforge --skill transcribe
 ```
 
 Global install:
 
 ```bash
-npx skills add dairui1/podcast-helper --skill transcribe -g
+npx skills add dairui1/podforge --skill transcribe -g
 ```
 
 Manual install from a local checkout:
@@ -34,7 +34,7 @@ Optional reminder hook:
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'podcast-helper transcribe'; then echo 'Transcription complete; ask whether cleanup is needed.'; fi"
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -q 'podforge transcribe'; then echo 'Transcription complete; ask whether cleanup is needed.'; fi"
           }
         ]
       }
@@ -48,7 +48,7 @@ Optional reminder hook:
 Recommended install:
 
 ```bash
-clawdhub install dairui1/podcast-helper --skill transcribe
+clawdhub install dairui1/podforge --skill transcribe
 ```
 
 Manual install from a local checkout:
@@ -63,8 +63,8 @@ cp -R skills/transcribe ~/.openclaw/skills/transcribe
 For agents that do not auto-load `SKILL.md`, add a short pointer in `AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md`:
 
 ```markdown
-Use podcast-helper for podcast transcription:
-- `npx podcast-helper transcribe <input> --output-dir <dir> --json`
+Use podforge for podcast transcription:
+- `npx podforge transcribe <input> --output-dir <dir> --json`
 - ask before cleanup
 - see `skills/transcribe/SKILL.md` for workflow details
 ```

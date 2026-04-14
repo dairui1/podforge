@@ -28,7 +28,7 @@ const packageJson = require("../package.json") as { version: string };
 const cliContext = detectCliContext(process.argv.slice(2));
 
 const program = new Command()
-  .name("podcast-helper")
+  .name("podforge")
   .description("Download podcast audio and generate transcript artifacts.")
   .version(packageJson.version)
   .configureOutput({
@@ -38,7 +38,7 @@ const program = new Command()
 
 program
   .command("doctor")
-  .description("Inspect the local environment for podcast-helper transcription.")
+  .description("Inspect the local environment for podforge transcription.")
   .option(
     "--python-executable <path>",
     "Python interpreter to verify for local mlx-whisper runs"
@@ -61,7 +61,7 @@ program
 
 program
   .command("setup")
-  .description("Install local runtime dependencies for podcast-helper.")
+  .description("Install local runtime dependencies for podforge.")
   .argument("<target>", "Setup target. Currently supported: mlx-whisper")
   .option(
     "--python-executable <path>",

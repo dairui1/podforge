@@ -53,11 +53,11 @@ Use `--engine <provider>` only when the user explicitly wants a backend or when 
 |----------|------------|---------|
 | YouTube extraction | `yt-dlp` | `brew install yt-dlp` or `pip install yt-dlp` |
 | Local transcription | `ffmpeg`, `python3` | `brew install ffmpeg` |
-| `mlx-whisper` runtime | `podcast-helper setup mlx-whisper` | Installs the stable local runtime |
+| `mlx-whisper` runtime | `podforge setup mlx-whisper` | Installs the stable local runtime |
 
 Quick environment check:
 
 ```bash
 printenv ELEVENLABS_API_KEY
-podcast-helper doctor
+podforge doctor
 ```

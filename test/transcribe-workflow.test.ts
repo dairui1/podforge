@@ -13,7 +13,7 @@ describe("transcribe workflow", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-test-"));
+    tempDir = await mkdtemp(join(tmpdir(), "podforge-test-"));
   });
 
   afterEach(async () => {
@@ -194,7 +194,7 @@ describe("transcribe workflow", () => {
 
     const sessionStarted = events.find((event) => event.type === "session.started");
     const sessionDir = typeof sessionStarted?.data?.sessionDir === "string" ? sessionStarted.data.sessionDir : "";
-    expect(sessionDir).toContain("podcast-helper-session-");
+    expect(sessionDir).toContain("podforge-session-");
     await expect(access(sessionDir)).rejects.toThrow();
 
     const partialEvents = events.filter((event) => event.type === "transcript.partial");

@@ -9,7 +9,7 @@ describe("ElevenLabs transcription provider", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-elevenlabs-"));
+    tempDir = await mkdtemp(join(tmpdir(), "podforge-elevenlabs-"));
   });
 
   afterEach(async () => {

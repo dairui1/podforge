@@ -1,20 +1,20 @@
 ---
 name: transcribe
 description: "For transcript or subtitle requests involving podcast URLs, public audio URLs/files, or raw transcript cleanup. Generates audio + SRT + TXT artifacts and can optionally clean transcripts with episode-page context."
-allowed-tools: Bash(curl:*), Bash(podcast-helper:*), Bash(npx podcast-helper:*), Bash(pnpm dlx podcast-helper:*), Bash(node dist/cli.js:*), Bash(pnpm run build:*)
+allowed-tools: Bash(curl:*), Bash(podforge:*), Bash(npx podforge:*), Bash(pnpm dlx podforge:*), Bash(node dist/cli.js:*), Bash(pnpm run build:*)
 metadata:
   version: "1.4.1"
   tags: [podcast, transcription, audio, subtitles, asr, cleanup]
 ---
 
-# Transcribe with podcast-helper
+# Transcribe with podforge
 
 Generate transcript artifacts from a podcast episode, audio file, or raw transcript, with an optional cleanup pass that uses episode-page context.
 
 ## Default Workflow
 
 1. Choose a dedicated output directory such as `./out/<episode-slug>/`.
-2. Run `npx podcast-helper transcribe <input> --output-dir <dir> --json`.
+2. Run `npx podforge transcribe <input> --output-dir <dir> --json`.
 3. Add `--progress jsonl` only when machine-readable progress is needed.
 4. Report the generated artifact paths for audio, `.srt`, and `.txt`.
 5. Ask whether the user wants cleanup. Do not run cleanup implicitly.
@@ -24,13 +24,13 @@ If you are inside this repository and `dist/cli.js` is missing, run `pnpm run bu
 
 ## Gotchas
 
-- Prefer no-install entry points first: `npx`, then `pnpm dlx`, then a globally installed `podcast-helper`.
+- Prefer no-install entry points first: `npx`, then `pnpm dlx`, then a globally installed `podforge`.
 - Let the CLI auto-select the engine unless the user explicitly requests a backend or needs offline Apple Silicon transcription.
 - Spotify URLs are unsupported because the audio is DRM-protected. Ask for an RSS-backed episode page, Apple Podcasts link, or direct audio URL instead.
 - YouTube inputs require `yt-dlp`.
 - Generic episode pages sometimes hide audio metadata. If source resolution fails, download the audio separately and rerun with the file path.
 - Hosted transcription failures usually come from a missing or wrong provider API key.
-- Local `mlx-whisper` runs require `ffmpeg`, `python3`, and a working runtime from `podcast-helper setup mlx-whisper`.
+- Local `mlx-whisper` runs require `ffmpeg`, `python3`, and a working runtime from `podforge setup mlx-whisper`.
 - Keep the raw transcript untouched. Cleanup should write a sibling `*.cleaned.txt`.
 
 ## Command Forms
@@ -38,19 +38,19 @@ If you are inside this repository and `dist/cli.js` is missing, run `pnpm run bu
 Default:
 
 ```bash
-npx podcast-helper transcribe <input> --output-dir ./out/<slug> --json
+npx podforge transcribe <input> --output-dir ./out/<slug> --json
 ```
 
 Fallbacks:
 
-- `pnpm dlx podcast-helper transcribe <input> --output-dir ./out/<slug> --json`
-- `podcast-helper transcribe <input> --output-dir ./out/<slug> --json`
+- `pnpm dlx podforge transcribe <input> --output-dir ./out/<slug> --json`
+- `podforge transcribe <input> --output-dir ./out/<slug> --json`
 - `node dist/cli.js transcribe <input> --output-dir ./out/<slug> --json` only inside this repository
 
 For offline Apple Silicon:
 
 ```bash
-npx podcast-helper transcribe <input> --engine mlx-whisper --output-dir ./out/<slug> --json
+npx podforge transcribe <input> --engine mlx-whisper --output-dir ./out/<slug> --json
 ```
 
 ## Cleanup Branch

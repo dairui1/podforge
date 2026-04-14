@@ -1,8 +1,8 @@
-# podcast-helper
+# podforge
 
 [English](./README.md)
 
-`podcast-helper` 是一个面向播客下载和转录流程的 Node CLI 工具。
+`podforge` 是一个面向播客下载和转录流程的 Node CLI 工具。
 
 当前项目先聚焦一个明确可用的场景：
 
@@ -55,7 +55,7 @@
 
 ## 默认引擎选择
 
-`podcast-helper` 会自动选择转录引擎：
+`podforge` 会自动选择转录引擎：
 
 - 如果本地 `mlx-whisper` 可用，优先走 `mlx-whisper`
 - `ELEVENLABS_API_KEY` -> `elevenlabs`
@@ -74,20 +74,20 @@
 不做全局安装，直接运行：
 
 ```bash
-npx podcast-helper --help
-pnpm dlx podcast-helper --help
+npx podforge --help
+pnpm dlx podforge --help
 ```
 
 如果要先检查本地环境：
 
 ```bash
-npx podcast-helper doctor
+npx podforge doctor
 ```
 
 转录播客单集页面或音频文件：
 
 ```bash
-npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podforge transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
 ```
 
 通用单集页面支持最适合这类公开页面：
@@ -103,29 +103,29 @@ npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b80
 
 ```bash
 export OPENAI_API_KEY=你的_key
-pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine openai --output-dir ./out/openai --json
+pnpm dlx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine openai --output-dir ./out/openai --json
 ```
 
 Apple Silicon 本地转录，使用 `mlx-whisper`：
 
 ```bash
-npx podcast-helper setup mlx-whisper
-npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
+npx podforge setup mlx-whisper
+npx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --output-dir ./out/mlx --json
 ```
 
-`setup` 会把 `mlx-whisper` 安装到稳定的虚拟环境 `~/.podcast-helper/venvs/mlx-whisper` 下，后续 CLI 会自动发现并优先使用它。
+`setup` 会把 `mlx-whisper` 安装到稳定的虚拟环境 `~/.podforge/venvs/mlx-whisper` 下，后续 CLI 会自动发现并优先使用它。
 
 本地分块转录，并输出流式进度：
 
 ```bash
-npx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --chunk-duration 300 --progress jsonl --output-dir ./out/mlx --json
+npx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine mlx-whisper --chunk-duration 300 --progress jsonl --output-dir ./out/mlx --json
 ```
 
 如果希望长期可用，也可以全局安装：
 
 ```bash
-npm install -g podcast-helper
-podcast-helper --help
+npm install -g podforge
+podforge --help
 ```
 
 ## 开发环境要求
@@ -160,39 +160,39 @@ node dist/cli.js --help
 转录一个小宇宙单集：
 
 ```bash
-npx podcast-helper transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
+npx podforge transcribe https://www.xiaoyuzhoufm.com/episode/69b4d2f9f8b8079bfa3ae7f2 --output-dir ./out/episode --json
 ```
 
 转录一个通过通用 HTML 或 feed 元数据发现音频的公开播客单集页面：
 
 ```bash
-npx podcast-helper transcribe https://example.fm/episodes/42 --output-dir ./out/episode-page --json
+npx podforge transcribe https://example.fm/episodes/42 --output-dir ./out/episode-page --json
 ```
 
 显式用 Groq 转录一个直接音频 URL：
 
 ```bash
 export GROQ_API_KEY=你的_key
-pnpm dlx podcast-helper transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine groq --output-dir ./out/groq --json
+pnpm dlx podforge transcribe https://storage.googleapis.com/eleven-public-cdn/audio/marketing/nicole.mp3 --engine groq --output-dir ./out/groq --json
 ```
 
 按默认引擎选择转录一个本地音频文件：
 
 ```bash
-podcast-helper transcribe ./audio/interview.mp3 --output-dir ./out/local --json
+podforge transcribe ./audio/interview.mp3 --output-dir ./out/local --json
 ```
 
 在 Apple Silicon 上使用 `mlx-whisper` 做本地转录：
 
 ```bash
-npx podcast-helper setup mlx-whisper
-podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
+npx podforge setup mlx-whisper
+podforge transcribe ./audio/interview.mp3 --engine mlx-whisper --output-dir ./out/local-mlx --json
 ```
 
 如果要保留独立的临时工作目录用于调试：
 
 ```bash
-podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp --output-dir ./out/local-mlx --json
+podforge transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp --output-dir ./out/local-mlx --json
 ```
 
 示例输出：
@@ -222,10 +222,10 @@ podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp
   "error": {
     "code": "MLX_WHISPER_UNAVAILABLE",
     "category": "dependency",
-    "message": "mlx-whisper is not available. Run `podcast-helper doctor` to inspect your environment, then `podcast-helper setup mlx-whisper` to install the local runtime.",
+    "message": "mlx-whisper is not available. Run `podforge doctor` to inspect your environment, then `podforge setup mlx-whisper` to install the local runtime.",
     "hints": [
-      "Run `podcast-helper doctor` to inspect the local runtime.",
-      "Run `podcast-helper setup mlx-whisper` to install the local runtime."
+      "Run `podforge doctor` to inspect the local runtime.",
+      "Run `podforge setup mlx-whisper` to install the local runtime."
     ]
   }
 }
@@ -247,13 +247,13 @@ podcast-helper transcribe ./audio/interview.mp3 --engine mlx-whisper --keep-temp
 安装 skill：
 
 ```bash
-npx skills add dairui1/podcast-helper --skill transcribe
+npx skills add dairui1/podforge --skill transcribe
 ```
 
 全局安装：
 
 ```bash
-npx skills add dairui1/podcast-helper --skill transcribe -g
+npx skills add dairui1/podforge --skill transcribe -g
 ```
 
 skill 文件在：
@@ -262,7 +262,7 @@ skill 文件在：
 
 分发方式：
 
-- `skills.sh` 没有单独的 publish 步骤。这个仓库可以直接通过 `npx skills add dairui1/podcast-helper --skill transcribe` 安装，用户安装之后会被动出现在 `skills.sh`。
+- `skills.sh` 没有单独的 publish 步骤。这个仓库可以直接通过 `npx skills add dairui1/podforge --skill transcribe` 安装，用户安装之后会被动出现在 `skills.sh`。
 - ClawHub 支持从同一个 skill 目录显式发布。仓库里新增了 [`.github/workflows/publish-skills.yml`](./.github/workflows/publish-skills.yml)，在 GitHub release 发布后，或手动触发 workflow 时，会把 `./skills` 下的 skill 发布到 ClawHub。
 - 如果某个 skill 需要一个和本地 skill 名不同、但长期稳定的 ClawHub slug，可以在 `skills/<skill>/agents/clawhub.json` 里覆盖。
 - 使用 ClawHub workflow 前，需要先配置仓库 secret `CLAWHUB_TOKEN`。
@@ -284,8 +284,8 @@ gh release create v<下一个 package 版本> --target main --generate-notes
 这个 skill 会引导 agent 优先使用免安装入口：
 
 ```bash
-npx podcast-helper transcribe <input> --output-dir <dir> --json
-pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
+npx podforge transcribe <input> --output-dir <dir> --json
+pnpm dlx podforge transcribe <input> --output-dir <dir> --json
 ```
 
 如果省略 `--engine`：
@@ -307,8 +307,8 @@ pnpm dlx podcast-helper transcribe <input> --output-dir <dir> --json
 - `stderr` 持续输出 chunk 级别进度和 partial transcript
 - 开启 `--json` 或 `--progress jsonl` 时会输出结构化错误信息，便于 agent 处理
 - 完成后自动清理，除非显式传 `--keep-temp`
-- `podcast-helper doctor` 用来检查本地环境
-- `podcast-helper setup mlx-whisper` 用来安装本地运行时
+- `podforge doctor` 用来检查本地环境
+- `podforge setup mlx-whisper` 用来安装本地运行时
 
 如果只是做低成本真实验证，skill 里推荐优先使用：
 
@@ -348,8 +348,8 @@ pnpm run test:live
 运行本地 `mlx-whisper` live test：
 
 ```bash
-npx podcast-helper setup mlx-whisper
-export MLX_WHISPER_PYTHON="$HOME/.podcast-helper/venvs/mlx-whisper/bin/python"
+npx podforge setup mlx-whisper
+export MLX_WHISPER_PYTHON="$HOME/.podforge/venvs/mlx-whisper/bin/python"
 pnpm run test:live
 ```
 

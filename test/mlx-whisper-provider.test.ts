@@ -9,7 +9,7 @@ describe("MLX Whisper transcription provider", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    tempDir = await mkdtemp(join(tmpdir(), "podcast-helper-mlx-provider-"));
+    tempDir = await mkdtemp(join(tmpdir(), "podforge-mlx-provider-"));
   });
 
   afterEach(async () => {
